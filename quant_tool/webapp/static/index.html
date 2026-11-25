@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>整数量化分析与部署工具</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="title">
+    <h1>整数量化分析与部署工具</h1>
+    <div class="sub">权重 / 激活 INT8 · INT4 · FP32 混合精度 · 全程整数 GEMM 模拟</div>
+  </div>
+  <div class="controls">
+    <label>模型
+      <select id="modelSelect"></select>
+    </label>
+    <span id="datasetTag" class="tag"></span>
+    <span id="keyTag" class="tag key"></span>
+  </div>
+</header>
+
+<nav id="tabs">
+  <button data-tab="overview" class="active">方案总览</button>
+  <button data-tab="sensitivity">逐层敏感度</button>
+  <button data-tab="mixed">混合精度选择</button>
+  <button data-tab="calib">校准集与异常通道</button>
+  <button data-tab="trace">单样本逐层追踪</button>
+</nav>
+
+<main>
+  <!-- 1. overview -->
+  <section id="tab-overview" class="tab active">
+    <div class="cards" id="schemeCards"></div>
+    <h2>方案对比（总体 / 关键类别 / 体积 / 整数周期）</h2>
+    <div class="table-wrap">
+      <table id="schemeTable"></table>
+    </div>
+    <h2>各类别召回率（量化前后）</h2>
+    <div id="perClassChart" class="chart"></div>
+  </section>
+
+  <!-- 2. sensitivity -->
+  <section id="tab-sensitivity" class="tab">
+    <h2>逐层 SQNR（dB，INT8 整数路径 vs 浮点）</h2>
+    <div id="sqnrChart" class="chart"></div>
+    <h2>单层消融：仅该层量化到 INT4 时的掉点</h2>
+    <div id="ablationChart" class="chart"></div>
+    <p class="hint">条越长越敏感；红色为关键类召回下降。排序按总准确率掉点。</p>
+  </section>
+
+  <!-- 3. mixed -->
+  <section id="tab-mixed" class="tab">
+    <div id="mixedSummary" class="cards"></div>
+    <h2>搜索选出的每层精度</h2>
+    <div class="table-wrap">
+      <table id="mixedLayerTable"></table>
+    </div>
+    <h2>可行方案 Pareto 前沿（整数周期 vs 模型字节）</h2>
+    <div id="paretoChart" class="chart"></div>
+    <div id="feasibleList"></div>
+    <p class="hint" id="budgetHint"></p>
+  </section>
+
+  <!-- 4. calibration + outliers -->
+  <section id="tab-calib" class="tab">
+    <h2>定范围依据：MinMax vs 分位截断（全 INT8，per-tensor）</h2>
+    <div class="table-wrap">
+      <table id="observerTable"></table>
+    </div>
+    <p class="hint">分位截断主动削掉极值，牺牲少量截断误差换更细的量化网格，常用于含异常通道的层。</p>
+    <h2>校准样本选择对结果的影响（全 INT8，per-tensor）</h2>
+    <div class="table-wrap">
+      <table id="calibTable"></table>
+    </div>
+    <h2>异常宽通道识别（按权重范围 / 中位数排序）</h2>
+    <div class="table-wrap">
+      <table id="outlierTable"></table>
+    </div>
+  </section>
+
+  <!-- 5. trace -->
+  <section id="tab-trace" class="tab">
+    <div class="controls">
+      <label>选择样本
+        <select id="sampleSelect"></select>
+      </label>
+      <span id="sampleMeta" class="tag"></span>
+    </div>
+    <h2>逐层量化误差（SQNR / 余弦 / 平均偏差）</h2>
+    <div class="table-wrap">
+      <table id="traceTable"></table>
+    </div>
+    <h2>选定层的浮点 vs 整数量化输出（前 64 个分量）</h2>
+    <div class="controls">
+      <label>层
+        <select id="traceLayerSelect"></select>
+      </label>
+    </div>
+    <div id="traceChart" class="chart tall"></div>
+  </section>
+</main>
+
+<script src="charts.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

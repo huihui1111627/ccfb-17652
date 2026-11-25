@@ -16,3 +16,9 @@ node_modules/
 __pycache__/
 .venv/
 venv/
+
+# project artifacts
+data_cache/
+experiments/**/*.log
+experiments/models/*.npz
+experiments/results/*.json
